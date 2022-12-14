@@ -55,6 +55,14 @@
                 {% endfor %}
                 </td>
             </tr>
+            <tr>
+                <th>Demandes</th>
+                <td>
+                {% for demand in employee.demands %}
+                    <p>{{ demand.type }} {{ demand.about }} {{ demand.status is null ? 'En attente': (demand.status==1 ? 'Acceptée':'Refusé')}}</p>
+                {% endfor %}
+                </td>
+            </tr>
         </tbody>
     </table>
 

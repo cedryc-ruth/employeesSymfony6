@@ -54,11 +54,15 @@ class Employee
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Salary::class, orphanRemoval: false)]
     private Collection $salaries;
 
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Demand::class)]
+    private Collection $demands;
+
     public function __construct()
     {
         $this->departments = new ArrayCollection();
         $this->managingStories = new ArrayCollection();
         $this->salaries = new ArrayCollection();
+        $this->demands = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -235,5 +239,39 @@ class Employee
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Demand>
+     */
+    public function getDemands(): Collection
+    {
+        return $this->demands;
+    }
+
+    public function addDemand(Demand $demand): self
+    {
+        if (!$this->demands->contains($demand)) {
+            $this->demands->add($demand);
+            $demand->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemand(Demand $demand): self
+    {
+        if ($this->demands->removeElement($demand)) {
+            // set the owning side to null (unless already changed)
+            if ($demand->getEmployee() === $this) {
+                $demand->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function __toString() :string {
+        return "{$this->first_name} {$this->last_name}";
     }
 }
