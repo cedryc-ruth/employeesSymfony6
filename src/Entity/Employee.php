@@ -19,7 +19,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class Employee implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue()]
     #[ORM\Column(name: '`emp_no`', type: 'integer')]
     private ?int $id = null;
 
@@ -356,3 +356,5 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         return "{$this->first_name} {$this->last_name}";
     }
 }
+
+

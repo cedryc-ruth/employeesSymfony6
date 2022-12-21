@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
 
 #[Route('/employee')]
 class EmployeeController extends AbstractController
@@ -23,13 +25,22 @@ class EmployeeController extends AbstractController
     }
 
     #[Route('/new', name: 'app_employee_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EmployeeRepository $employeeRepository): Response
+    public function new(Request $request, EmployeeRepository $employeeRepository, UserPasswordHasherInterface $passwordHasher): Response
     {
         $employee = new Employee();
         $form = $this->createForm(EmployeeType::class, $employee);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // hash the password (based on the security.yaml config for the $user class)
+            $hashedPassword = $passwordHasher->hashPassword(
+                $employee,
+                $employee->getPassword()
+            );
+            $employee->setPassword($hashedPassword);
+
+            $employee->setRoles(['ROLE_USER']);
+
             $employeeRepository->save($employee, true);
 
             return $this->redirectToRoute('app_employee_index', [], Response::HTTP_SEE_OTHER);
