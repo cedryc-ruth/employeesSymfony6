@@ -73,12 +73,17 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Demand::class)]
     private Collection $demands;
 
+    #[ORM\OneToMany(mappedBy: 'employeeFull', targetEntity: DeptEmp::class)]
+    #[ORM\JoinColumn(name: 'emp_no', referencedColumnName: 'emp_no',nullable: false)]
+    private Collection $deptStories;
+
     public function __construct()
     {
         $this->departments = new ArrayCollection();
         $this->managingStories = new ArrayCollection();
         $this->salaries = new ArrayCollection();
         $this->demands = new ArrayCollection();
+        $this->deptStories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -354,6 +359,36 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __toString() :string {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * @return Collection<int, DeptEmp>
+     */
+    public function getDeptStories(): Collection
+    {
+        return $this->deptStories;
+    }
+
+    public function addDeptStory(DeptEmp $deptStory): self
+    {
+        if (!$this->deptStories->contains($deptStory)) {
+            $this->deptStories->add($deptStory);
+            $deptStory->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeptStory(DeptEmp $deptStory): self
+    {
+        if ($this->deptStories->removeElement($deptStory)) {
+            // set the owning side to null (unless already changed)
+            if ($deptStory->getEmployee() === $this) {
+                $deptStory->setEmployee(null);
+            }
+        }
+
+        return $this;
     }
 }
 

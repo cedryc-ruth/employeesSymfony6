@@ -11,6 +11,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Repository\DepartmentRepository;
+use App\Repository\DeptEmpRepository;
+use App\Entity\DeptEmp;
+use Doctrine\Persistence\ManagerRegistry;
+
 
 
 #[Route('/employee')]
@@ -25,7 +30,12 @@ class EmployeeController extends AbstractController
     }
 
     #[Route('/new', name: 'app_employee_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EmployeeRepository $employeeRepository, UserPasswordHasherInterface $passwordHasher): Response
+    public function new(Request $request, 
+        EmployeeRepository $employeeRepository, 
+        DeptEmpRepository $deptEmpRepository, 
+        DepartmentRepository $deptRepository, 
+        UserPasswordHasherInterface $passwordHasher,
+        ManagerRegistry $doctrine): Response
     {
         $employee = new Employee();
         $form = $this->createForm(EmployeeType::class, $employee);
@@ -42,6 +52,26 @@ class EmployeeController extends AbstractController
             $employee->setRoles(['ROLE_USER']);
 
             $employeeRepository->save($employee, true);
+            
+            //$employee = $employeeRepository->findOneBy([],['id'=>'DESC']);
+dump($employee);
+            $deptEmp = new DeptEmp();
+            $deptEmp->setEmployee($employee);
+            $deptEmp->setDepartment($deptRepository->find('d001'));
+            $deptEmp->setFromDate(new \DateTime('now'));
+            $deptEmp->setToDate(new \DateTime('9999-12-31'));
+            $deptEmp->setEmployeeFull($employee);
+dump($deptEmp);
+            try {
+                $manager = $doctrine->getManager();
+                $manager->persist($deptEmp);
+                $manager->flush();
+                dd($deptEmp);
+            } catch( ForeignKeyConstraintViolationException $e) {
+                dd($e);
+
+            }
+
 
             return $this->redirectToRoute('app_employee_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -55,6 +85,9 @@ class EmployeeController extends AbstractController
     #[Route('/{id}', name: 'app_employee_show', methods: ['GET'])]
     public function show(Employee $employee): Response
     {
+        dump($employee->getSalaries()->toArray());
+        dd($employee->getDeptStories()->toArray());
+
         return $this->render('employee/show.html.twig', [
             'employee' => $employee,
         ]);
